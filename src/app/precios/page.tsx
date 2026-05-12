@@ -99,21 +99,35 @@ export default function PreciosPage() {
     }, 100);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Open mailto as fallback
-    const subject = encodeURIComponent(
-      `Consulta Plan ${selectedPlan} — Gestoría Legal`
-    );
-    const body = encodeURIComponent(
-      `Nombre: ${formData.nombre}\nEmail: ${formData.email}\n\n${formData.mensaje}`
-    );
-    window.open(
-      `mailto:info@joelcabreragelsi.com?subject=${subject}&body=${body}`,
-      "_blank"
-    );
-    setSent(true);
-    setTimeout(() => setSent(false), 5000);
+    setSent(false);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: formData.nombre,
+          email: formData.email,
+          mensaje: formData.mensaje,
+          plan: selectedPlan,
+        }),
+      });
+
+      if (response.ok) {
+        setSent(true);
+        setTimeout(() => {
+          setSent(false);
+          setShowForm(false);
+          setFormData({ nombre: "", email: "", mensaje: "" });
+        }, 5000);
+      } else {
+        alert("Hubo un error enviando el mensaje. Por favor intentá de nuevo.");
+      }
+    } catch (error) {
+      alert("Error de conexión. Revisá tu internet e intentá de nuevo.");
+    }
   }
 
   return (
